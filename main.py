@@ -11,6 +11,7 @@ cursor_contas = conexão_contas.cursor()
 CURRENT_ACCOUNT = ""
 
 def pergunta_reg_ou_log():
+    header()
     try:
         rl = int(input("Você deseja registrar[1], logar[2] ou sair[3]? "))
         if rl == 1:
@@ -18,7 +19,9 @@ def pergunta_reg_ou_log():
         elif rl == 2:
             logar()
         elif rl == 3:
+            header()
             print("Adeus, volte sempre!")
+            print("--" * 20)
         else:
             print("\nNúmeros invalidos, escolhe entre 1 e 3!")
             pergunta_reg_ou_log()
@@ -26,8 +29,14 @@ def pergunta_reg_ou_log():
         print("\nEscreva apenas números")
         pergunta_reg_ou_log()
 
-def registrar():
+def header():
     os.system('cls')
+    print("="* 52)
+    print("                    MATEUS BANK")
+    print("="* 52)
+    print("\n")
+def registrar():
+    header()
     nome = input("Digite seu novo nome aqui: ")
     senha = input("Digite sua nova senha aqui: ")
     account = str(uuid.uuid4())
@@ -37,26 +46,28 @@ def registrar():
     cursor_contas.execute('''select * from contas''')
     result = cursor_contas.fetchall()
     print("Registro bem sucedido!")
+    pergunta_reg_ou_log()
 
 def logar():
-    os.system('cls')
+    header()
     nome = input("Digite seu nome: ")
     senha = input("Digite sua senha: ")
     cursor_contas.execute('''select * from contas where nome = ? and senha = ?''', (nome,senha))
     result = cursor_contas.fetchone()
     if result:
-        print(f"O nome '{nome}' e a senha '{senha}' estão presentes na tabela.")
+        print(f"O nome '{nome}' e a senha '{senha}' estão presentes no nosso banco de dados.")
         cursor_contas.execute('''select account from contas where nome = ? and senha = ?''', (nome,senha))
         CURRENT_ACCOUNT = str(cursor_contas.fetchone())
         bank(nome,senha)
 
     else:
-        print(f"O nome '{nome}' e/ou a senha '{senha}' não estão presentes na tabela.")
+        print(f"O nome '{nome}' e/ou a senha '{senha}' não estão presentes no nosso banco de dados.")
+        sleep(3)
         pergunta_reg_ou_log()
 
 def bank(name,senha):
     sleep(2)
-    os.system('cls')
+    header()
     opt = int(input(f"Olá {name}, o que você deseja fazer? \n\t[1]OLHAR SALDO\n\t[2]DEPOSITAR SALDO\n\t[3]RETIRAR SALDO\n\t[4]OLHAR ESTRATO\n\t[5]SAIR\n"))
     if opt == 1:
         cursor_contas.execute('''SELECT saldo FROM contas WHERE nome = ? AND senha = ?''', (name, senha))
@@ -86,6 +97,7 @@ def bank(name,senha):
     elif opt ==4:
         pass
     elif opt ==5:
+        header()
         print("Adeus, volte sempre!")
         print("--" * 20)
     else:
