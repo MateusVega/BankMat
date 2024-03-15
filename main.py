@@ -6,9 +6,8 @@ from time import sleep
 
 conexão_contas = sqlite3.connect('contas.db')
 cursor_contas = conexão_contas.cursor()
-#cursor_contas.execute('''create table contas(nome text, senha text, account text, saldo real)''')
-#cursor_contas.execute('''create table transacao(valor real, tipo text, dia text)''')
-CURRENT_ACCOUNT = ""
+cursor_contas.execute('''create table contas(nome text, senha text, account text, saldo real)''')
+cursor_contas.execute('''create table transacao(valor real, tipo text, dia text)''')
 
 def pergunta_reg_ou_log():
     header()
@@ -56,8 +55,6 @@ def logar():
     result = cursor_contas.fetchone()
     if result:
         print(f"O nome '{nome}' e a senha '{senha}' estão presentes no nosso banco de dados.")
-        cursor_contas.execute('''select account from contas where nome = ? and senha = ?''', (nome,senha))
-        CURRENT_ACCOUNT = str(cursor_contas.fetchone())
         bank(nome,senha)
 
     else:
@@ -82,6 +79,8 @@ def bank(name,senha):
         saldo_atual = cursor_contas.fetchone()[0]
         novo_saldo = saldo_atual + val_to_dep
         cursor_contas.execute('''UPDATE contas SET saldo = ? WHERE nome = ? AND senha = ?''', (novo_saldo, name, senha))
+        cursor_contas.execute('''insert into transacao(valor, tipo, dia) values(?, ?, ?)''', (val_to_dep, tipo, data_hora))
+        conexão_contas.commit()
         print("Depósito realizado com sucesso.")
         bank(name,senha)
     elif opt ==3:
@@ -92,10 +91,22 @@ def bank(name,senha):
         saldo_atual = cursor_contas.fetchone()[0]
         novo_saldo = saldo_atual - val_to_ret
         cursor_contas.execute('''UPDATE contas SET saldo = ? WHERE nome = ? AND senha = ?''', (novo_saldo, name, senha))
+        cursor_contas.execute('''insert into transacao(valor, tipo, dia) values(?, ?, ?)''', (val_to_ret, tipo, data_hora))
+        conexão_contas.commit()
         print("Transação realizada com sucesso.")
         bank(name,senha)
     elif opt ==4:
-        pass
+        cursor_contas.execute('''SELECT * FROM transacao ''')
+        transacoes = cursor_contas.fetchall()
+        for i in transacoes:
+            print(f"No dia {i[2]}, você {i[1]} {i[0]} Reais")
+        while True:
+            gout = int(input("SE DESEJAR SAIR PRESSIONE 1: "))
+            if gout == 1:
+                break
+            else:
+                pass
+        bank(name,senha)
     elif opt ==5:
         header()
         print("Adeus, volte sempre!")
