@@ -27,7 +27,6 @@ def pergunta_reg_ou_log():
     except ValueError as VE:
         print("\nEscreva apenas números")
         pergunta_reg_ou_log()
-
 def header():
     os.system('cls')
     print("="* 52)
@@ -46,7 +45,6 @@ def registrar():
     result = cursor_contas.fetchall()
     print("Registro bem sucedido!")
     pergunta_reg_ou_log()
-
 def logar():
     header()
     nome = input("Digite seu nome: ")
@@ -61,7 +59,6 @@ def logar():
         print(f"O nome '{nome}' e/ou a senha '{senha}' não estão presentes no nosso banco de dados.")
         sleep(3)
         pergunta_reg_ou_log()
-
 def bank(name,senha):
     sleep(2)
     header()
