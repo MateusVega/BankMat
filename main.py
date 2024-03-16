@@ -8,7 +8,6 @@ conexão_contas = sqlite3.connect('contas.db')
 cursor_contas = conexão_contas.cursor()
 #cursor_contas.execute('''create table contas(nome text, senha text, account text, saldo real)''')
 #cursor_contas.execute('''create table transacao(nome, senha, valor real, tipo text, dia text)''')
-
 def pergunta_reg_ou_log():
     header()
     try:
@@ -41,16 +40,25 @@ def registrar():
     saldo = 0.00
     cursor_contas.execute('''SELECT nome FROM contas''')
     nom = cursor_contas.fetchone()
-    if nome != str(nom[0]).strip("(),'"):
-        cursor_contas.execute('''INSERT INTO contas(nome, senha, account, saldo) VALUES(?, ?, ?, ?)''', (nome, senha, account, saldo))
+    if nom != None:
+        if nome != str(nom).strip("(),'"):
+            cursor_contas.execute('''insert into contas(nome, senha, account, saldo) values(?, ?, ?, ?)''', (nome, senha, account, saldo))
+            conexão_contas.commit()
+            cursor_contas.execute('''select * from contas''')
+            result = cursor_contas.fetchall()
+            print("Registration successful!")
+            sleep(3)
+            pergunta_reg_ou_log()
+        else:
+            print("Name already in use!")
+            sleep(3)
+            pergunta_reg_ou_log()
+    else:
+        cursor_contas.execute('''insert into contas(nome, senha, account, saldo) values(?, ?, ?, ?)''', (nome, senha, account, saldo))
         conexão_contas.commit()
-        cursor_contas.execute('''SELECT * FROM contas''')
+        cursor_contas.execute('''select * from contas''')
         result = cursor_contas.fetchall()
         print("Registration successful!")
-        sleep(3)
-        pergunta_reg_ou_log()
-    else:
-        print("Name already in use!")
         sleep(3)
         pergunta_reg_ou_log()
 def logar():
