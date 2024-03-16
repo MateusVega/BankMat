@@ -12,20 +12,20 @@ cursor_contas = conexão_contas.cursor()
 def pergunta_reg_ou_log():
     header()
     try:
-        rl = int(input("Do you want to register[1], log in[2], or exit[3]? "))
+        rl = int(input("Você deseja registrar[1], logar[2] ou sair[3]? "))
         if rl == 1:
             registrar()
         elif rl == 2:
             logar()
         elif rl == 3:
             header()
-            print("Goodbye, come back soon!")
+            print("Adeus, volte sempre!")
             print("--" * 20)
         else:
-            print("\nInvalid numbers, choose between 1 and 3!")
+            print("\nNúmeros invalidos, escolhe entre 1 e 3!")
             pergunta_reg_ou_log()
     except ValueError as VE:
-        print("\nWrite only numbers")
+        print("\nEscreva apenas números")
         pergunta_reg_ou_log()
 def header():
     os.system('cls')
@@ -35,79 +35,79 @@ def header():
     print("\n")
 def registrar():
     header()
-    nome = input("Enter your new name here: ")
-    senha = input("Enter your new password here: ")
+    nome = input("Digite seu novo nome aqui: ")
+    senha = input("Digite sua nova senha aqui: ")
     account = str(uuid.uuid4())
     saldo = 0.00
     cursor_contas.execute('''SELECT nome FROM contas''')
     nom = cursor_contas.fetchone()
     if nome != str(nom[0]).strip("(),'"):
-        cursor_contas.execute('''INSERT INTO contas(nome, senha, account, saldo) VALUES(?, ?, ?, ?)''', (nome, senha, account, saldo))
+        cursor_contas.execute('''insert into contas(nome, senha, account, saldo) values(?, ?, ?, ?)''', (nome, senha, account, saldo))
         conexão_contas.commit()
-        cursor_contas.execute('''SELECT * FROM contas''')
+        cursor_contas.execute('''select * from contas''')
         result = cursor_contas.fetchall()
-        print("Registration successful!")
+        print("Registro bem sucedido!")
         sleep(3)
         pergunta_reg_ou_log()
     else:
-        print("Name already in use!")
+        print("Nome já é utilizado!")
         sleep(3)
         pergunta_reg_ou_log()
 def logar():
     header()
-    nome = input("Enter your name: ")
-    senha = input("Enter your password: ")
-    cursor_contas.execute('''SELECT * FROM contas WHERE nome = ? AND senha = ?''', (nome,senha))
+    nome = input("Digite seu nome: ")
+    senha = input("Digite sua senha: ")
+    cursor_contas.execute('''select * from contas where nome = ? and senha = ?''', (nome,senha))
     result = cursor_contas.fetchone()
     if result:
-        print(f"The name '{nome}' and the password '{senha}' are in our database.")
+        print(f"O nome '{nome}' e a senha '{senha}' estão presentes no nosso banco de dados.")
         sleep(3)
         bank(nome,senha)
 
     else:
-        print(f"The name '{nome}' and/or the password '{senha}' are not in our database.")
+        print(f"O nome '{nome}' e/ou a senha '{senha}' não estão presentes no nosso banco de dados.")
         sleep(3)
         pergunta_reg_ou_log()
 def bank(name,senha):
     sleep(2)
     header()
-    opt = int(input(f"Hello {name}, what would you like to do? \n\t[1]CHECK BALANCE\n\t[2]DEPOSIT BALANCE\n\t[3]WITHDRAW BALANCE\n\t[4]CHECK STATEMENT\n\t[5]EXIT\n"))
+    opt = int(input(f"Olá {name}, o que você deseja fazer? \n\t[1]OLHAR SALDO\n\t[2]DEPOSITAR SALDO\n\t[3]RETIRAR SALDO\n\t[4]OLHAR ESTRATO\n\t[5]SAIR\n"))
     if opt == 1:
         cursor_contas.execute('''SELECT saldo FROM contas WHERE nome = ? AND senha = ?''', (name, senha))
         saldo = cursor_contas.fetchone()[0]
-        print(f"Hello {name}, your current balance is {saldo}")
+        print(f"Olá {name}, o seu saldo atual é {saldo}")
         bank(name,senha)
     elif opt ==2:
-        tipo = "Deposited"
+        tipo = "Depositou"
         data_hora = datetime.now().strftime('%Y-%m-%d')
-        val_to_dep = float(input("How much would you like to deposit? "))
+        val_to_dep = float(input("Quanto você deseja depositar? "))
         cursor_contas.execute('''SELECT saldo FROM contas WHERE nome = ? AND senha = ?''', (name, senha))
         saldo_atual = cursor_contas.fetchone()[0]
         novo_saldo = saldo_atual + val_to_dep
         cursor_contas.execute('''UPDATE contas SET saldo = ? WHERE nome = ? AND senha = ?''', (novo_saldo, name, senha))
-        cursor_contas.execute('''INSERT INTO transacao(nome, senha, valor, tipo, dia) VALUES(?, ?, ?, ?, ?)''', (name, senha, val_to_dep, tipo, data_hora))
+        cursor_contas.execute('''insert into transacao(nome, senha, valor, tipo, dia) values(?, ?, ?, ?, ?)''', (name, senha, val_to_dep, tipo, data_hora))
         conexão_contas.commit()
-        print("Deposit successful.")
+        print("Depósito realizado com sucesso.")
         bank(name,senha)
     elif opt ==3:
-        tipo = "Withdrew"
+        tipo = "Retirou"
         data_hora = datetime.now().strftime('%Y-%m-%d')
-        val_to_ret = float(input("How much would you like to withdraw? "))
+        val_to_ret = float(input("Quanto você deseja retirar? "))
         cursor_contas.execute('''SELECT saldo FROM contas WHERE nome = ? AND senha = ?''', (name, senha))
         saldo_atual = cursor_contas.fetchone()[0]
         novo_saldo = saldo_atual - val_to_ret
         cursor_contas.execute('''UPDATE contas SET saldo = ? WHERE nome = ? AND senha = ?''', (novo_saldo, name, senha))
-        cursor_contas.execute('''INSERT INTO transacao(nome, senha, valor, tipo, dia) VALUES(?, ?, ?, ?, ?)''', (name, senha, val_to_ret, tipo, data_hora))
+        cursor_contas.execute('''insert into transacao(nome, senha, valor, tipo, dia) values(?, ?, ?, ?, ?)''', (name, senha, val_to_ret, tipo, data_hora))
         conexão_contas.commit()
-        print("Transaction successful.")
+        print("Transação realizada com sucesso.")
         bank(name,senha)
     elif opt ==4:
         cursor_contas.execute('''SELECT * FROM transacao WHERE nome = ? AND senha = ?''', (name, senha))
         transacoes = cursor_contas.fetchall()
         for i in transacoes:
-            print(f"On {i[4]}, you {i[3]} {i[2]} Dollars")
+            print(f"No dia {i[4]}, você {i[3]} {i[2]} Reais")
         while True:
-            gout = int(input("PRESS 1 TO QUIT: "))
+            gout = int(input("SE DESEJAR SAIR PRESSIONE 1: "))
             if gout == 1:
                 break
             else:
@@ -115,10 +115,10 @@ def bank(name,senha):
         bank(name,senha)
     elif opt ==5:
         header()
-        print("Goodbye, come back soon!")
+        print("Adeus, volte sempre!")
         print("--" * 20)
     else:
-        print("\nInvalid numbers, choose between 1 and 5!")
+        print("\nNúmeros invalidos, escolhe entre 1 e 5!")
         bank(name)
 
 pergunta_reg_ou_log()
