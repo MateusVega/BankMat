@@ -6,8 +6,8 @@ from time import sleep
 
 conexão_contas = sqlite3.connect('contas.db')
 cursor_contas = conexão_contas.cursor()
-cursor_contas.execute('''create table contas(nome text, senha text, account text, saldo real)''')
-cursor_contas.execute('''create table transacao(valor real, tipo text, dia text)''')
+#cursor_contas.execute('''create table contas(nome text, senha text, account text, saldo real)''')
+#cursor_contas.execute('''create table transacao(nome, senha, valor real, tipo text, dia text)''')
 
 def pergunta_reg_ou_log():
     header()
@@ -39,12 +39,20 @@ def registrar():
     senha = input("Digite sua nova senha aqui: ")
     account = str(uuid.uuid4())
     saldo = 0.00
-    cursor_contas.execute('''insert into contas(nome, senha, account, saldo) values(?, ?, ?, ?)''', (nome, senha, account, saldo))
-    conexão_contas.commit()
-    cursor_contas.execute('''select * from contas''')
-    result = cursor_contas.fetchall()
-    print("Registro bem sucedido!")
-    pergunta_reg_ou_log()
+    cursor_contas.execute('''SELECT nome FROM contas''')
+    nom = cursor_contas.fetchone()
+    if nome != str(nom[0]).strip("(),'"):
+        cursor_contas.execute('''insert into contas(nome, senha, account, saldo) values(?, ?, ?, ?)''', (nome, senha, account, saldo))
+        conexão_contas.commit()
+        cursor_contas.execute('''select * from contas''')
+        result = cursor_contas.fetchall()
+        print("Registro bem sucedido!")
+        sleep(3)
+        pergunta_reg_ou_log()
+    else:
+        print("Nome já é utilizado!")
+        sleep(3)
+        pergunta_reg_ou_log()
 def logar():
     header()
     nome = input("Digite seu nome: ")
@@ -53,6 +61,7 @@ def logar():
     result = cursor_contas.fetchone()
     if result:
         print(f"O nome '{nome}' e a senha '{senha}' estão presentes no nosso banco de dados.")
+        sleep(3)
         bank(nome,senha)
 
     else:
@@ -76,7 +85,7 @@ def bank(name,senha):
         saldo_atual = cursor_contas.fetchone()[0]
         novo_saldo = saldo_atual + val_to_dep
         cursor_contas.execute('''UPDATE contas SET saldo = ? WHERE nome = ? AND senha = ?''', (novo_saldo, name, senha))
-        cursor_contas.execute('''insert into transacao(valor, tipo, dia) values(?, ?, ?)''', (val_to_dep, tipo, data_hora))
+        cursor_contas.execute('''insert into transacao(nome, senha, valor, tipo, dia) values(?, ?, ?, ?, ?)''', (name, senha, val_to_dep, tipo, data_hora))
         conexão_contas.commit()
         print("Depósito realizado com sucesso.")
         bank(name,senha)
@@ -88,15 +97,15 @@ def bank(name,senha):
         saldo_atual = cursor_contas.fetchone()[0]
         novo_saldo = saldo_atual - val_to_ret
         cursor_contas.execute('''UPDATE contas SET saldo = ? WHERE nome = ? AND senha = ?''', (novo_saldo, name, senha))
-        cursor_contas.execute('''insert into transacao(valor, tipo, dia) values(?, ?, ?)''', (val_to_ret, tipo, data_hora))
+        cursor_contas.execute('''insert into transacao(nome, senha, valor, tipo, dia) values(?, ?, ?, ?, ?)''', (name, senha, val_to_ret, tipo, data_hora))
         conexão_contas.commit()
         print("Transação realizada com sucesso.")
         bank(name,senha)
     elif opt ==4:
-        cursor_contas.execute('''SELECT * FROM transacao ''')
+        cursor_contas.execute('''SELECT * FROM transacao WHERE nome = ? AND senha = ?''', (name, senha))
         transacoes = cursor_contas.fetchall()
         for i in transacoes:
-            print(f"No dia {i[2]}, você {i[1]} {i[0]} Reais")
+            print(f"No dia {i[4]}, você {i[3]} {i[2]} Reais")
         while True:
             gout = int(input("SE DESEJAR SAIR PRESSIONE 1: "))
             if gout == 1:
